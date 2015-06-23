@@ -2,7 +2,7 @@ corpus = Array.new(){[]} #corpus[doc_index][token_index] = word
 wd = []
 allwd = []
 k = 10
-iterate = 1000
+iterate = 100
 alpha = beta = 1.0
 
 #Load File
@@ -43,6 +43,7 @@ end
 
 allwd.uniq!
 v = allwd.length #v:the number of word types
+p_z = Array.new(k)
 
 #Main Algorithm
 for n in 0..iterate
@@ -61,14 +62,30 @@ for n in 0..iterate
           p_z_molecule = beta * (n_dz[m][j] + alpha).to_f
         end
         p_z_denominator = (n_z[j] + beta*v) * (n_d[m] + alpha*k).to_f
-        p_z = p_z_molecule / p_z_denominator
-        if temp < p_z
-          temp = p_z
-          ztemp = j
+        p_z[j] = p_z_molecule / p_z_denominator
+        temp += p_z[j]
+      end
+      for j in 0..k-1
+        p_z[j] = p_z[j] / temp
+      end
+      roulette = rand
+      if roulette < p_z[0]
+        z = 0
+      else
+        for j in 1..k-1
+          p_z[j] += p_z[j-1]
+          if roulette < p_z[j]
+            z = j
+            break
+          end
         end
       end
       topic[m][i] = z
-      n_wz[z][corpus[m][i]] += 1
+      if n_wz[z].key?(corpus[m][i])
+        n_wz[z][corpus[m][i]] += 1
+      else
+        n_wz[z][corpus[m][i]] = 1
+      end
       n_dz[m][z] += 1
       n_d[m] += 1
       n_z[z] += 1
@@ -80,7 +97,7 @@ end
 resultary = Array.new(10)
 for z in 0..k-1
   result = {}
-  puts "z=#{z}------------------------------------------------"
+  puts "------------------------------------------------\nz=#{z}"
   for m in 0..lendoc-1
     for i in 0..corpus[m].length-1
       if topic[m][i] == z
@@ -89,7 +106,7 @@ for z in 0..k-1
       end
     end
   end
-  resultary = result.sort{|key, val| val <=> key}[0..9]
+  resultary = result.sort{|(k1, v1), (k2, v2)| v2 <=> v1}[0..9]
   for res in resultary
     puts res
   end
