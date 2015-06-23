@@ -1,0 +1,24 @@
+corpus = Array.new(){[]}
+topic = Array.new(){[]}
+n_wz = Array.new(){[]}
+n_dz = Array.new(){[]}
+n_z = []
+n_d = []
+wd = []
+
+#Load File
+line = 0
+File.open("kakaku_filtered.txt") do |f|
+  while l = f.gets
+    line += 1
+    wd = l.split(" ")
+    i = 0
+    for w in wd do
+      i += 1
+      w.slice!(/_.*/)
+    end
+    corpus << wd
+  end
+  p corpus
+end
+
